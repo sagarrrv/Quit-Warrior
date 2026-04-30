@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quit Warrior</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --fire:#e85d04;--gold:#f59e0b;--green:#16a34a;--red:#dc2626;
+    --bg:#f5f0eb;--card:#ffffff;--card2:#f9f5f0;--border:#e8e0d8;
+    --txt:#1c1917;--muted:#78716c;
+  }
+  body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh}
+  h1,h2,h3,.streak-num{font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+
+  .app{max-width:480px;margin:0 auto;padding:1rem}
+
+  .logo{text-align:center;margin-bottom:1rem;padding-top:0.75rem}
+  .logo span:first-child{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--fire)}
+  .logo span:last-child{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--txt)}
+
+  .tabs{display:flex;gap:4px;background:var(--border);border-radius:10px;padding:4px;margin-bottom:1.2rem}
+  .tab{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border:none;background:transparent;transition:all .2s}
+  .tab.active{background:var(--fire);color:#fff}
+
+  .page{display:none}.page.active{display:block}
+
+  .streak-hero{text-align:center;padding:1.5rem 1rem 1.2rem;background:var(--card);border-radius:16px;border:0.5px solid var(--border);margin-bottom:1rem}
+  .streak-label{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+  .streak-num{font-family:'Bebas Neue',sans-serif;font-size:100px;line-height:1;color:var(--fire)}
+  .streak-word{font-size:15px;color:var(--muted);letter-spacing:2px;margin-top:-6px}
+  .streak-fire{font-size:26px;margin-top:10px}
+
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+  .stat-card{background:var(--card);border-radius:12px;padding:1rem;border:0.5px solid var(--border)}
+  .lbl{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+  .val{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1.1}
+  .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .val.money{color:#b45309}
+  .val.sticks{color:var(--green)}
+  .val.hrs{color:#1d4ed8}
+  .val.pb{color:#7c3aed}
+
+  .section-label{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:0 0 8px}
+
+  .milestone-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:1rem;scrollbar-width:none}
+  .milestone-row::-webkit-scrollbar{display:none}
+  .milestone{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center;flex-shrink:0;min-width:80px}
+  .milestone.achieved{border-color:var(--gold);background:#fffbeb}
+  .m-icon{font-size:18px;margin-bottom:2px}
+  .m-day{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--fire)}
+  .m-lbl{font-size:10px;color:var(--muted)}
+
+  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+  .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all .15s;width:100%}
+  .btn:active{transform:scale(0.97)}
+  .btn-success{background:var(--green);color:#fff}
+  .btn-danger{background:var(--red);color:#fff}
+  .btn-warn{background:var(--gold);color:#fff}
+  .btn-neutral{background:var(--card2);color:var(--txt);border:0.5px solid var(--border)}
+
+  .challenge-box{background:var(--card);border:1.5px solid var(--red);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
+  .ch-badge{font-size:11px;letter-spacing:2px;color:var(--red);text-transform:uppercase;margin-bottom:4px}
+  .ch-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);margin-bottom:6px}
+  .ch-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+  .ch-timer{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--fire);text-align:center;margin:8px 0}
+  .progress-bar{background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin:8px 0}
+  .progress-fill{height:100%;background:var(--fire);border-radius:4px;transition:width .3s}
+
+  .history-list{display:flex;flex-direction:column;gap:8px}
+  .hist-item{background:var(--card);border-radius:10px;padding:12px 14px;border:0.5px solid var(--border);display:flex;align-items:center;gap:12px}
+  .hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .hist-dot.clean{background:var(--green)}
+  .hist-dot.smoked{background:var(--red)}
+  .hist-dot.recovered{background:var(--gold)}
+  .hist-text{font-size:13px;color:var(--txt)}
+  .hist-date{font-size:11px;color:var(--muted)}
+
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;margin-right:4px}
+  .tag-clean{background:#dcfce7;color:#15803d}
+  .tag-smoked{background:#fee2e2;color:#b91c1c}
+  .tag-recovered{background:#fef9c3;color:#a16207}
+
+  .settings-card{background:var(--card);border-radius:12px;border:0.5px solid var(--border);padding:1rem;margin-bottom:10px}
+  .settings-card label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+  .settings-card input{width:100%;background:var(--card2);border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif}
+  .settings-card input:focus{outline:none;border-color:var(--fire)}
+
+  .no-data{text-align:center;padding:2rem;color:var(--muted);font-size:14px;line-height:1.6}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:100}
+  .overlay.show{display:flex}
+  .confirm-box{background:var(--card);border-radius:16px;padding:1.5rem;width:290px;text-align:center;border:0.5px solid var(--border)}
+  .confirm-box h3{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--red);margin-bottom:8px}
+  .confirm-box p{font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5}
+  .confirm-btns{display:flex;gap:8px}
+
+  .today-status{text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
+
+  /* Dreams page */
+  .d-hero{background:var(--card);border-radius:16px;border:0.5px solid var(--border);padding:1.2rem;margin-bottom:10px;text-align:center}
+  .d-hero-label{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+  .d-hero-amount{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--fire);line-height:1}
+  .d-hero-sub{font-size:13px;color:var(--muted);margin-top:4px}
+  .d-hero-buys{font-size:14px;color:var(--green);font-weight:500;margin-top:6px}
+
+  .chart-toggle{display:flex;gap:4px;background:var(--border);border-radius:8px;padding:3px;margin-bottom:10px}
+  .chart-toggle button{flex:1;padding:6px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .15s}
+  .chart-toggle button.active{background:var(--card);color:var(--txt)}
+
+  .chart-box{background:var(--card);border-radius:14px;border:0.5px solid var(--border);padding:1rem;margin-bottom:10px}
+  .chart-title{font-size:12px;font-weight:500;color:var(--txt);margin-bottom:2px}
+  .chart-sub{font-size:11px;color:var(--muted);margin-bottom:12px}
+  .chart-area{position:relative;height:160px;width:100%}
+  canvas{width:100%!important}
+
+  .retire-box{background:var(--card);border-radius:14px;border:2px solid #7c3aed;padding:1.1rem;margin-bottom:10px}
+  .retire-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .retire-icon{font-size:24px}
+  .retire-heading{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#7c3aed}
+  .retire-sub{font-size:12px;color:var(--muted)}
+  .retire-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .retire-cell{background:#f5f3ff;border-radius:10px;padding:10px;border:0.5px solid #c4b5fd;text-align:center}
+  .retire-cell .r-lbl{font-size:10px;letter-spacing:1px;color:#7c3aed;text-transform:uppercase;margin-bottom:2px}
+  .retire-cell .r-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#4c1d95;line-height:1.1}
+  .retire-cell .r-sub{font-size:10px;color:#7c3aed;margin-top:2px}
+  .retire-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;padding-top:8px;border-top:0.5px solid #e9d5ff}
+
+  .buy-section-label{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:4px 0 8px}
+  .buy-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;scrollbar-width:none}
+  .buy-scroll::-webkit-scrollbar{display:none}
+  .buy-card{flex-shrink:0;width:130px;background:var(--card);border-radius:14px;border:0.5px solid var(--border);padding:12px;text-align:center;position:relative}
+  .buy-card.unlocked{border-color:var(--green);background:#f0fdf4}
+  .buy-card.close{border-color:var(--gold);background:#fffbeb}
+  .buy-icon{font-size:32px;margin-bottom:6px}
+  .buy-name{font-size:12px;font-weight:500;color:var(--txt);margin-bottom:2px;line-height:1.3}
+  .buy-price{font-size:11px;color:var(--muted);margin-bottom:6px}
+  .buy-pct-bar{background:var(--border);border-radius:3px;height:4px;overflow:hidden;margin-bottom:4px}
+  .buy-pct-fill{height:100%;border-radius:3px}
+  .fill-green{background:var(--green)}
+  .fill-gold{background:var(--gold)}
+  .fill-gray{background:#d1d5db}
+  .buy-status{font-size:10px;font-weight:500}
+  .status-green{color:var(--green)}
+  .status-gold{color:#a16207}
+  .status-gray{color:var(--muted)}
+  .buy-checkmark{position:absolute;top:8px;right:8px;font-size:14px}
+
+  .add-dream-box{background:var(--card);border:0.5px dashed var(--border);border-radius:14px;padding:1rem;margin-bottom:10px}
+  .add-dream-box label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+  .add-dream-box input{width:100%;background:var(--card2);border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+  .add-dream-box input:focus{outline:none;border-color:var(--fire)}
+  .add-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo"><span>QUIT</span><span> WARRIOR</span></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('home')">Home</button>
+    <button class="tab" onclick="switchTab('challenge')">Challenge</button>
+    <button class="tab" onclick="switchTab('dreams')">Dreams</button>
+    <button class="tab" onclick="switchTab('history')">History</button>
+    <button class="tab" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div class="streak-hero">
+      <div class="streak-label">current streak</div>
+      <div class="streak-num" id="streak-display">0</div>
+      <div class="streak-word">DAYS SMOKE-FREE</div>
+      <div class="streak-fire" id="streak-fire">💪</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="lbl">money saved</div>
+        <div class="val money" id="money-saved">₹0</div>
+        <div class="sub">vs daily habit</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl">sticks skipped</div>
+        <div class="val sticks" id="sticks-saved">0</div>
+        <div class="sub">cigarettes</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl">life regained</div>
+        <div class="val hrs" id="life-saved">0 min</div>
+        <div class="sub">~11 min/stick</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl">best streak</div>
+        <div class="val pb" id="best-streak">0 days</div>
+        <div class="sub">personal best</div>
+      </div>
+    </div>
+
+    <div class="section-label">milestones</div>
+    <div class="milestone-row" id="milestones"></div>
+
+    <div class="section-label">log today</div>
+    <div class="action-row">
+      <button class="btn btn-success" onclick="logCleanDay()">✓ Clean Day</button>
+      <button class="btn btn-danger" onclick="showConfirm()">⚠ I Smoked</button>
+    </div>
+    <div class="today-status" id="today-status"></div>
+  </div>
+
+  <!-- DREAMS -->
+  <div id="page-dreams" class="page">
+    <div id="dreams-content"></div>
+  </div>
+
+  <!-- CHALLENGE -->
+  <div id="page-challenge" class="page">
+    <div id="challenge-content"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="page-history" class="page">
+    <div class="section-label">log</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="page-settings" class="page">
+    <div class="section-label">your habit</div>
+    <div class="settings-card">
+      <label>cigarettes per day</label>
+      <input type="number" id="set-per-day" value="5" min="1" max="60">
+    </div>
+    <div class="settings-card">
+      <label>cost per cigarette (₹)</label>
+      <input type="number" id="set-cost" value="12" min="1" max="500">
+    </div>
+    <div class="settings-card">
+      <label>quit start date</label>
+      <input type="date" id="set-start-date">
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:8px">
+      <button class="btn btn-warn" style="flex:1" onclick="saveSettings()">Save Settings</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-neutral" onclick="resetAll()">Reset Everything</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM OVERLAY -->
+<div class="overlay" id="smoked-overlay">
+  <div class="confirm-box">
+    <h3>You smoked?</h3>
+    <p>Be honest. Just one cigarette, or did you fully relapse?</p>
+    <div class="confirm-btns">
+      <button class="btn btn-warn" style="flex:1" onclick="smokedOne()">Just 1</button>
+      <button class="btn btn-danger" style="flex:1" onclick="smokedMany()">More than 1</button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-neutral" onclick="hideConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MILESTONES=[
+  {d:1,icon:'🌱',label:'Day 1'},{d:3,icon:'💪',label:'3 Days'},
+  {d:7,icon:'🔥',label:'1 Week'},{d:14,icon:'⚡',label:'2 Weeks'},
+  {d:21,icon:'🏅',label:'21 Days'},{d:30,icon:'🏆',label:'1 Month'},
+  {d:60,icon:'💎',label:'2 Months'},{d:90,icon:'👑',label:'3 Months'},
+  {d:180,icon:'🌟',label:'6 Months'},{d:365,icon:'🎯',label:'1 Year'}
+];
+const CHALLENGES=[
+  {title:'Cold Shower',desc:"Take a 3-minute cold shower right now. No warm-up. Face the discomfort like you're facing the craving.",dur:180,action:'Start 3-min timer'},
+  {title:'100 Push-Ups',desc:'Drop and do 100 push-ups total. Break into sets. Every rep is a punch against the addiction.',dur:null,action:'Log Completion'},
+  {title:'10-Min Meditation',desc:'Sit still, eyes closed, 10 minutes. No phone, no distraction. Breathe through the urge.',dur:600,action:'Start 10-min timer'},
+  {title:'Run 2km',desc:'Lace up and run 2km outside right now. Sweat out the shame, earn back your streak.',dur:null,action:'Log Completion'},
+  {title:'Write 50 Reasons',desc:'Handwrite 50 reasons you want to quit. Fill a full page. No shortcuts, no typing.',dur:null,action:'Log Completion'},
+  {title:'No Screen for 3 hrs',desc:'Put your phone away for 3 full hours. No Netflix, no Instagram, nothing.',dur:10800,action:'Start 3-hr timer'},
+  {title:'10,000 Steps',desc:'Walk 10,000 steps today. Track it on your phone. No shortcut.',dur:null,action:'Log Completion'},
+  {title:'12-Hour Fast',desc:'No food for 12 hours from now. Practice discipline — you smoked one, you owe it.',dur:43200,action:'Start 12-hr timer'},
+];
+
+let state={bestStreak:0,history:[],pendingChallenge:null,challengeStarted:null,perDay:5,costPerStick:12,startDate:null};
+let timerInterval=null;
+
+function save(){try{localStorage.setItem('qw_light',JSON.stringify(state))}catch(e){}}
+function load(){try{const d=localStorage.getItem('qw_light');if(d)state={...state,...JSON.parse(d)}}catch(e){}}
+
+function today(){return new Date().toISOString().slice(0,10)}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}
+
+function calcStreak(){
+  let s=0,cur=new Date();
+  for(let i=0;i<400;i++){
+    const ds=cur.toISOString().slice(0,10);
+    const h=state.history.find(x=>x.date===ds);
+    if(h&&(h.type==='clean'||h.type==='recovered'))s++;
+    else if(i===0){cur.setDate(cur.getDate()-1);continue;}
+    else break;
+    cur.setDate(cur.getDate()-1);
+  }
+  return s;
+}
+
+function render(){
+  const streak=calcStreak();
+  if(streak>state.bestStreak)state.bestStreak=streak;
+
+  document.getElementById('streak-display').textContent=streak;
+  const fe=document.getElementById('streak-fire');
+  if(streak===0)fe.textContent='💪';
+  else if(streak<3)fe.textContent='🌱🔥';
+  else if(streak<7)fe.textContent='🔥🔥';
+  else if(streak<30)fe.textContent='🔥🔥🔥';
+  else fe.textContent='👑🔥🔥🔥';
+
+  const sticks=streak*state.perDay;
+  const money=sticks*state.costPerStick;
+  const mins=sticks*11;
+  document.getElementById('sticks-saved').textContent=sticks;
+  document.getElementById('money-saved').textContent='₹'+money.toLocaleString('en-IN');
+  document.getElementById('life-saved').textContent=mins>=60?Math.round(mins/60)+' hrs':mins+' min';
+  document.getElementById('best-streak').textContent=state.bestStreak+' days';
+
+  // Milestones
+  document.getElementById('milestones').innerHTML=MILESTONES.map(m=>
+    `<div class="milestone${streak>=m.d?' achieved':''}">
+      <div class="m-icon">${m.icon}</div>
+      <div class="m-day">${m.d}d</div>
+      <div class="m-lbl">${m.label}</div>
+    </div>`).join('');
+
+  // Today status
+  const td=today();
+  const te=state.history.find(h=>h.date===td);
+  const se=document.getElementById('today-status');
+  if(te){
+    if(te.type==='clean')se.textContent='✓ Today logged as clean';
+    else if(te.type==='smoked')se.textContent='Challenge pending — go to Challenge tab';
+    else if(te.type==='recovered')se.textContent='✓ Challenge done — streak recovered!';
+    else se.textContent='';
+  } else {se.textContent='Log today when ready';}
+
+  renderChallenge();renderHistory();renderSettings();
+}
+
+function logCleanDay(){
+  const td=today();
+  if(state.history.find(h=>h.date===td)){alert('Already logged today!');return;}
+  state.history.push({date:td,type:'clean',note:'Clean day'});
+  save();render();
+}
+
+function showConfirm(){document.getElementById('smoked-overlay').classList.add('show');}
+function hideConfirm(){document.getElementById('smoked-overlay').classList.remove('show');}
+
+function smokedOne(){
+  hideConfirm();
+  const td=today();
+  if(state.history.find(h=>h.date===td)){alert('Already logged today.');return;}
+  const ch=CHALLENGES[Math.floor(Math.random()*CHALLENGES.length)];
+  state.pendingChallenge={...ch,assignedDate:td};
+  state.history.push({date:td,type:'smoked',note:'Smoked 1 — challenge: '+ch.title});
+  save();render();switchTab('challenge');
+}
+
+function smokedMany(){
+  hideConfirm();
+  const td=today();
+  const idx=state.history.findIndex(h=>h.date===td);
+  if(idx>-1)state.history.splice(idx,1);
+  state.history.push({date:td,type:'smoked_many',note:'Relapsed — streak reset'});
+  state.pendingChallenge=null;state.challengeStarted=null;
+  save();render();
+  alert('Streak reset to 0.\nThat\'s okay — every warrior falls sometimes.\nStart again tomorrow.');
+}
+
+function renderChallenge(){
+  const cc=document.getElementById('challenge-content');
+  if(!state.pendingChallenge){
+    cc.innerHTML='<div class="no-data">No challenge active.<br>Stay clean and you\'ll never see one here 🔥</div>';
+    return;
+  }
+  const ch=state.pendingChallenge;
+  let timerHtml='';
+  if(ch.dur){
+    const el=state.challengeStarted?Math.floor((Date.now()-state.challengeStarted)/1000):0;
+    const rem=Math.max(0,ch.dur-el);
+    const pct=state.challengeStarted?Math.min(100,Math.round((el/ch.dur)*100)):0;
+    const mm=String(Math.floor(rem/60)).padStart(2,'0'),ss=String(rem%60).padStart(2,'0');
+    timerHtml=`
+      <div class="ch-timer" id="ch-timer">${mm}:${ss}</div>
+      <div class="progress-bar"><div class="progress-fill" id="ch-prog" style="width:${pct}%"></div></div>
+      ${!state.challengeStarted?`<button class="btn btn-warn" style="margin-bottom:8px" onclick="startTimer()">▶ ${ch.action}</button>`:''}
+      ${rem===0?`<button class="btn btn-success" onclick="completeChallenge()">✓ Mark Complete & Recover Streak</button>`:''}
+    `;
+  } else {
+    timerHtml=`<button class="btn btn-success" onclick="completeChallenge()">✓ ${ch.action} — Recover Streak</button>`;
+  }
+  cc.innerHTML=`
+    <div class="challenge-box">
+      <div class="ch-badge">⚠ punishment challenge</div>
+      <div class="ch-title">${ch.title}</div>
+      <div class="ch-desc">${ch.desc}</div>
+      ${timerHtml}
+    </div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:4px">Complete this to recover your streak. No shortcuts.</div>
+  `;
+  if(state.challengeStarted&&ch.dur){
+    if(timerInterval)clearInterval(timerInterval);
+    timerInterval=setInterval(()=>{
+      const elapsed=Math.floor((Date.now()-state.challengeStarted)/1000);
+      const rem=Math.max(0,ch.dur-elapsed);
+      const pct=Math.min(100,Math.round((elapsed/ch.dur)*100));
+      const t=document.getElementById('ch-timer'),p=document.getElementById('ch-prog');
+      if(t)t.textContent=String(Math.floor(rem/60)).padStart(2,'0')+':'+String(rem%60).padStart(2,'0');
+      if(p)p.style.width=pct+'%';
+      if(rem===0){clearInterval(timerInterval);renderChallenge();}
+    },1000);
+  }
+}
+
+function startTimer(){state.challengeStarted=Date.now();save();renderChallenge();}
+
+function completeChallenge(){
+  const ch=state.pendingChallenge;
+  const idx=state.history.findIndex(h=>h.date===ch.assignedDate&&h.type==='smoked');
+  if(idx>-1)state.history[idx].type='recovered';
+  state.history.push({date:today(),type:'recovered',note:'Challenge done: '+ch.title});
+  state.pendingChallenge=null;state.challengeStarted=null;
+  if(timerInterval)clearInterval(timerInterval);
+  save();render();switchTab('home');
+  alert('Streak recovered! You fought back.\nDon\'t let it happen again. 🔥');
+}
+
+function renderHistory(){
+  const hl=document.getElementById('history-list');
+  const sorted=[...state.history].sort((a,b)=>a.date>b.date?-1:1).slice(0,40);
+  if(!sorted.length){hl.innerHTML='<div class="no-data">No entries yet.<br>Log your first clean day!</div>';return;}
+  hl.innerHTML=sorted.map(h=>{
+    const dc=h.type==='clean'?'clean':h.type==='recovered'?'recovered':'smoked';
+    const tag=h.type==='clean'?'<span class="tag tag-clean">clean</span>':
+      h.type==='recovered'?'<span class="tag tag-recovered">recovered</span>':
+      '<span class="tag tag-smoked">smoked</span>';
+    return`<div class="hist-item">
+      <div class="hist-dot ${dc}"></div>
+      <div>
+        <div class="hist-text">${tag}${h.note||''}</div>
+        <div class="hist-date">${fmtDate(h.date)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSettings(){
+  document.getElementById('set-per-day').value=state.perDay;
+  document.getElementById('set-cost').value=state.costPerStick;
+  document.getElementById('set-start-date').value=state.startDate||'';
+}
+
+function saveSettings(){
+  state.perDay=parseInt(document.getElementById('set-per-day').value)||5;
+  state.costPerStick=parseInt(document.getElementById('set-cost').value)||12;
+  state.startDate=document.getElementById('set-start-date').value||null;
+  save();render();alert('Settings saved!');
+}
+
+function resetAll(){
+  if(confirm('Reset everything? All progress will be lost.')){
+    state={bestStreak:0,history:[],pendingChallenge:null,challengeStarted:null,perDay:5,costPerStick:12,startDate:null};
+    try{localStorage.removeItem('qw_light');}catch(e){}
+    render();
+  }
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['home','challenge','dreams','history','settings'][i]===t);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+  if(t==='dreams')renderDreams();
+}
+
+// ---- DREAMS ----
+const CURRENT_AGE=23;
+const RETIRE_AGE=60;
+const MF_RATE=0.12;
+
+const PRESET_DREAMS=[
+  {icon:'🍕',name:'Pizza Night',price:500},
+  {icon:'🎬',name:'Movie + Snacks',price:600},
+  {icon:'🍔',name:'Treat Friends',price:1500},
+  {icon:'🎮',name:'Steam Game',price:1500},
+  {icon:'📚',name:'10 Books',price:1500},
+  {icon:'🏍️',name:'Bike Service',price:2000},
+  {icon:'🎧',name:'Boat Earbuds',price:2500},
+  {icon:'👕',name:'New Outfit',price:2500},
+  {icon:'👟',name:'New Sneakers',price:3000},
+  {icon:'💻',name:'Keyboard',price:5000},
+  {icon:'🎸',name:'Guitar',price:6000},
+  {icon:'✈️',name:'Weekend Trip',price:8000},
+  {icon:'🌍',name:'Goa Trip',price:12000},
+  {icon:'🏋️',name:'Gym (1 yr)',price:15000},
+  {icon:'💎',name:'Gold Ring',price:20000},
+  {icon:'📱',name:'iPhone 16',price:80000},
+  {icon:'🛵',name:'Activa',price:80000},
+  {icon:'💻',name:'MacBook Air',price:115000},
+  {icon:'🏠',name:'Flat Deposit',price:200000},
+];
+
+let chartMonthly=null,chartYearly=null;
+let dreamChartView='monthly';
+
+function sipFV(monthly,months,rate=MF_RATE){
+  const r=rate/12;
+  if(r===0)return monthly*months;
+  return monthly*(((Math.pow(1+r,months)-1)/r)*(1+r));
+}
+
+function fmtCr(v){
+  if(v>=10000000)return (v/10000000).toFixed(2)+' Cr';
+  if(v>=100000)return (v/100000).toFixed(1)+' L';
+  if(v>=1000)return Math.round(v/1000)+'K';
+  return '₹'+Math.round(v);
+}
+
+function renderDreams(){
+  const dc=document.getElementById('dreams-content');
+  const daily=state.perDay*state.costPerStick;
+  const monthly=daily*30;
+  const streak=calcStreak();
+  const saved=streak*daily;
+  const allDreams=[...PRESET_DREAMS,...(state.customDreams||[])];
+
+  // what's the biggest thing they can buy right now
+  const canBuy=allDreams.filter(d=>saved>=d.price).sort((a,b)=>b.price-a.price);
+  const bestBuy=canBuy[0];
+  const nextDream=allDreams.filter(d=>d.price>saved).sort((a,b)=>a.price-b.price)[0];
+
+  // retirement
+  const yearsToRetire=RETIRE_AGE-CURRENT_AGE;
+  const retireCorpus=sipFV(monthly,yearsToRetire*12);
+  const corpus10=sipFV(monthly,10*12);
+  const corpus20=sipFV(monthly,20*12);
+
+  dc.innerHTML=`
+    <div class="d-hero">
+      <div class="d-hero-label">total saved so far</div>
+      <div class="d-hero-amount">₹${Math.round(saved).toLocaleString('en-IN')}</div>
+      <div class="d-hero-sub">${streak} days × ₹${daily}/day</div>
+      ${bestBuy?`<div class="d-hero-buys">✓ Enough to buy: ${bestBuy.icon} ${bestBuy.name}</div>`:''}
+      ${!bestBuy&&nextDream?`<div class="d-hero-buys" style="color:var(--gold)">Next goal: ${nextDream.icon} ${nextDream.name} — ${Math.ceil((nextDream.price-saved)/daily)} more days</div>`:''}
+    </div>
+
+    <div class="buy-section-label">what you can unlock</div>
+    <div class="buy-scroll" id="buy-scroll"></div>
+
+    <div class="chart-box">
+      <div class="chart-title">savings growth if invested in mutual funds</div>
+      <div class="chart-sub">₹${Math.round(monthly).toLocaleString('en-IN')}/month SIP @ 12% annual return</div>
+      <div class="chart-toggle">
+        <button id="btn-monthly" class="${dreamChartView==='monthly'?'active':''}" onclick="switchDreamChart('monthly')">Monthly (Year 1)</button>
+        <button id="btn-yearly" class="${dreamChartView==='yearly'?'active':''}" onclick="switchDreamChart('yearly')">Year by Year</button>
+      </div>
+      <div class="chart-area"><canvas id="dream-chart"></canvas></div>
+    </div>
+
+    <div class="retire-box">
+      <div class="retire-top">
+        <div class="retire-icon">🏖️</div>
+        <div>
+          <div class="retire-heading">Retirement Corpus</div>
+          <div class="retire-sub">If you invest from age ${CURRENT_AGE} to ${RETIRE_AGE}</div>
+        </div>
+      </div>
+      <div class="retire-grid">
+        <div class="retire-cell">
+          <div class="r-lbl">At 60 (retire)</div>
+          <div class="r-val">${fmtCr(retireCorpus)}</div>
+          <div class="r-sub">${yearsToRetire} years of SIP</div>
+        </div>
+        <div class="retire-cell">
+          <div class="r-lbl">At 10 Years</div>
+          <div class="r-val">${fmtCr(corpus10)}</div>
+          <div class="r-sub">age ${CURRENT_AGE+10}</div>
+        </div>
+        <div class="retire-cell">
+          <div class="r-lbl">At 20 Years</div>
+          <div class="r-val">${fmtCr(corpus20)}</div>
+          <div class="r-sub">age ${CURRENT_AGE+20}</div>
+        </div>
+        <div class="retire-cell">
+          <div class="r-lbl">Monthly SIP</div>
+          <div class="r-val">₹${Math.round(monthly).toLocaleString('en-IN')}</div>
+          <div class="r-sub">your smoke money</div>
+        </div>
+      </div>
+      <div class="retire-note">💡 This is money you were literally burning. ${retireCorpus>=10000000?'You could retire with <b>'+fmtCr(retireCorpus)+'</b> — enough to never worry about money again.':'Every rupee not smoked is a rupee compounding for your future.'}</div>
+    </div>
+
+    <div class="buy-section-label">add your own dream</div>
+    <div class="add-dream-box">
+      <label>Dream / Goal name</label>
+      <input type="text" id="d-name" placeholder="e.g. PS5">
+      <div class="add-row">
+        <div><label>Price (₹)</label><input type="number" id="d-price" placeholder="50000" min="1"></div>
+        <div><label>Emoji icon</label><input type="text" id="d-icon" placeholder="🎮" maxlength="2"></div>
+      </div>
+      <button style="background:var(--fire);color:#fff;border:none;border-radius:10px;padding:10px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px" onclick="addDream()">+ Add Dream</button>
+    </div>
+  `;
+
+  // Render buy cards
+  const sorted=[...allDreams].sort((a,b)=>{
+    const au=saved>=a.price,bu=saved>=b.price;
+    if(au&&!bu)return -1;if(!au&&bu)return 1;
+    return a.price-b.price;
+  });
+  const scroll=document.getElementById('buy-scroll');
+  scroll.innerHTML=sorted.map(d=>{
+    const pct=Math.min(100,Math.round((saved/d.price)*100));
+    const unlocked=saved>=d.price;
+    const close=!unlocked&&pct>=50;
+    const daysLeft=unlocked?0:Math.ceil((d.price-saved)/daily);
+    return`<div class="buy-card${unlocked?' unlocked':close?' close':''}">
+      ${unlocked?'<div class="buy-checkmark">✓</div>':''}
+      <div class="buy-icon">${d.icon}</div>
+      <div class="buy-name">${d.name}</div>
+      <div class="buy-price">₹${d.price.toLocaleString('en-IN')}</div>
+      <div class="buy-pct-bar"><div class="buy-pct-fill ${unlocked?'fill-green':close?'fill-gold':'fill-gray'}" style="width:${pct}%"></div></div>
+      <div class="buy-status ${unlocked?'status-green':close?'status-gold':'status-gray'}">${unlocked?'Ready!':close?daysLeft+'d away':daysLeft+'d away'}</div>
+    </div>`;
+  }).join('');
+
+  drawDreamChart(monthly);
+}
+
+function drawDreamChart(monthly){
+  const existing=document.getElementById('dream-chart');
+  if(!existing)return;
+  if(chartMonthly){chartMonthly.destroy();chartMonthly=null;}
+  if(chartYearly){chartYearly.destroy();chartYearly=null;}
+
+  const ctx=existing.getContext('2d');
+
+  if(dreamChartView==='monthly'){
+    const labels=[],sipData=[],simpleData=[];
+    for(let m=1;m<=12;m++){
+      labels.push('M'+m);
+      sipData.push(Math.round(sipFV(monthly,m)));
+      simpleData.push(Math.round(monthly*m));
+    }
+    chartMonthly=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {label:'With MF (12%)',data:sipData,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,pointRadius:3,fill:true,borderWidth:2},
+          {label:'Without investing',data:simpleData,borderColor:'#d1d5db',backgroundColor:'transparent',tension:0.4,pointRadius:2,borderWidth:1.5,borderDash:[4,3]}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{font:{size:11},boxWidth:12}}},
+        scales:{
+          x:{ticks:{font:{size:10}},grid:{display:false}},
+          y:{ticks:{font:{size:10},callback:v=>fmtCr(v)},grid:{color:'#f3f4f6'}}
+        }
+      }
+    });
+  } else {
+    const labels=[],sipData=[],simpleData=[],milestones=[];
+    const THINGS=[
+      {price:80000,label:'iPhone'},
+      {price:115000,label:'MacBook'},
+      {price:500000,label:'5L'},
+      {price:1000000,label:'10L'},
+      {price:10000000,label:'1Cr'},
+    ];
+    for(let y=1;y<=35;y++){
+      labels.push('Yr '+y);
+      sipData.push(Math.round(sipFV(monthly,y*12)));
+      simpleData.push(Math.round(monthly*y*12));
+    }
+    chartYearly=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {label:'With MF (12%)',data:sipData,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,pointRadius:2,fill:true,borderWidth:2},
+          {label:'Just saving',data:simpleData,borderColor:'#d1d5db',backgroundColor:'transparent',tension:0.4,pointRadius:1,borderWidth:1.5,borderDash:[4,3]}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{font:{size:11},boxWidth:12}},
+          annotation:{annotations:{}}
+        },
+        scales:{
+          x:{ticks:{font:{size:10},maxTicksLimit:10},grid:{display:false}},
+          y:{ticks:{font:{size:10},callback:v=>fmtCr(v)},grid:{color:'#f3f4f6'}}
+        }
+      }
+    });
+  }
+}
+
+function switchDreamChart(view){
+  dreamChartView=view;
+  document.getElementById('btn-monthly').classList.toggle('active',view==='monthly');
+  document.getElementById('btn-yearly').classList.toggle('active',view==='yearly');
+  const daily=state.perDay*state.costPerStick;
+  const monthly=daily*30;
+  if(chartMonthly){chartMonthly.destroy();chartMonthly=null;}
+  if(chartYearly){chartYearly.destroy();chartYearly=null;}
+  drawDreamChart(monthly);
+}
+
+function addDream(){
+  const name=document.getElementById('d-name').value.trim();
+  const price=parseInt(document.getElementById('d-price').value);
+  const icon=document.getElementById('d-icon').value.trim()||'🌟';
+  if(!name||!price||price<1){alert('Please enter a name and valid price.');return;}
+  if(!state.customDreams)state.customDreams=[];
+  state.customDreams.push({icon,name,price});
+  save();renderDreams();
+}
+
+load();render();
+</script>
+</body>
+</html>
